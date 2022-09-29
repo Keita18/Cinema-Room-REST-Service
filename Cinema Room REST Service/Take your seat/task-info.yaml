@@ -223,6 +223,339 @@ files:
         };
     }
   learner_created: false
+- name: src/cinema/FlightNotFoundException.java
+  visible: true
+  text: |-
+    package cinema;
+
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.ResponseStatus;
+
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    class FlightNotFoundException extends RuntimeException {
+
+        public FlightNotFoundException(String cause) {
+            super(cause);
+        }
+    }
+  learner_created: true
+- name: src/cinema/FlightInfo.java
+  visible: true
+  text: |-
+    package cinema;
+
+    public class FlightInfo {
+
+        private int id;
+        private String from;
+        private String to;
+        private String gate;
+
+        // constructor
+        public FlightInfo(int id, String from, String to, String gate) {
+            this.id = id;
+            this.from =from;
+            this.to = to;
+            this.gate = gate;
+        }
+
+        // getters and setters
+
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
+        }
+
+        public String getTo() {
+            return to;
+        }
+
+        public void setTo(String to) {
+            this.to = to;
+        }
+
+        public String getGate() {
+            return gate;
+        }
+
+        public void setGate(String gate) {
+            this.gate = gate;
+        }
+    }
+  learner_created: true
+- name: src/cinema/CinemaRoomController.java
+  visible: true
+  text: |
+    package cinema;
+
+    import org.springframework.web.bind.annotation.*;
+
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.concurrent.ConcurrentHashMap;
+
+    @RestController
+    public class CinemaRoomController {
+
+        List<CinemaSeat> cinemaSeatList() {
+            List<CinemaSeat> list = new ArrayList<>();
+
+            for (int i = 1; i < 10; i++) {
+                for (int j = 1; j < 10; j++) {
+                    list.add(new CinemaSeat(i, j));
+                }
+            }
+
+            return list;
+        }
+
+        CinemaRoom cinemaRoom() {
+            return new CinemaRoom(9, 9, cinemaSeatList());
+        }
+
+        @GetMapping("/seats")
+        public CinemaRoom getCinemaRoom() {
+            return cinemaRoom();
+        }
+
+        private final ConcurrentHashMap<String, String> addressList = new ConcurrentHashMap<>();
+
+        @GetMapping("/address")
+        public ConcurrentHashMap<String, String> getAddress() {
+            return addressList;
+        }
+
+        @PostMapping("/address")
+        public void postAddress(@RequestParam String name, @RequestParam String address) {
+            addressList.put(name, address);
+        }
+
+        @DeleteMapping("/address")
+        public void deleteAddress(@RequestParam String name) {
+            addressList.remove(name);
+        }
+    }
+  learner_created: true
+- name: src/cinema/CinemaRoom.java
+  visible: true
+  text: |
+    package cinema;
+
+    import java.util.List;
+
+    public class CinemaRoom {
+        private int total_rows;
+        private int total_columns;
+        private List<CinemaSeat> available_seats;
+
+        public CinemaRoom(int total_rows, int total_columns, List<CinemaSeat> available_seats) {
+            this.total_rows = total_rows;
+            this.total_columns = total_columns;
+            this.available_seats =available_seats;
+        }
+
+        public int getTotal_rows() {
+            return total_rows;
+        }
+
+        public void setTotal_rows(int total_rows) {
+            this.total_rows = total_rows;
+        }
+
+        public int getTotal_columns() {
+            return total_columns;
+        }
+
+        public void setTotal_columns(int total_columns) {
+            this.total_columns = total_columns;
+        }
+
+        public List<CinemaSeat> getAvailable_seats() {
+            return available_seats;
+        }
+
+        public void setAvailable_seats(List<CinemaSeat> available_seats) {
+            this.available_seats = available_seats;
+        }
+    }
+  learner_created: true
+- name: src/cinema/UserInfoController.java
+  visible: true
+  text: |
+    package cinema;
+
+    import org.springframework.web.bind.annotation.PostMapping;
+    import org.springframework.web.bind.annotation.RequestBody;
+    import org.springframework.web.bind.annotation.RestController;
+
+    import java.util.List;
+
+
+    @RestController
+    public class UserInfoController {
+
+
+        @PostMapping("/user")
+        public String userStatus(@RequestBody UserInfo user) {
+            if (user.isEnabled()) {
+                return String.format("Hello! %s. Your account is enabled.", user.getName());
+            } else {
+                return String.format("Hello! Nice to see you, %s! Your account is disabled",
+                        user.getName());
+            }
+        }
+
+
+
+        @PostMapping("/users")
+        public String userStatus(@RequestBody List<UserInfo> userList) {
+            return String.format("Added %d users", userList.size());
+        }
+    }
+  learner_created: true
+- name: src/cinema/CinemaSeat.java
+  visible: true
+  text: |
+    package cinema;
+
+    public class CinemaSeat {
+        private int row;
+        private int column;
+
+        public CinemaSeat(int row, int column) {
+            this.row = row;
+            this.column = column;
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        public void setRow(int row) {
+            this.row = row;
+        }
+
+        public int getColumn() {
+            return column;
+        }
+
+        public void setColumn(int column) {
+            this.column = column;
+        }
+    }
+  learner_created: true
+- name: src/cinema/UserInfo.java
+  visible: true
+  text: |
+    package cinema;
+
+    public class UserInfo {
+        private int id;
+        private String name;
+        private String phone;
+        private boolean enabled;
+
+        public UserInfo() {}
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+    }
+  learner_created: true
+- name: src/cinema/FlightController.java
+  visible: true
+  text: |-
+    package cinema;
+
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.GetMapping;
+    import org.springframework.web.bind.annotation.PathVariable;
+    import org.springframework.web.bind.annotation.RestController;
+    import org.springframework.web.server.ResponseStatusException;
+
+    import java.util.ArrayList;
+    import java.util.List;
+    import java.util.Objects;
+
+    @RestController
+    public class FlightController {
+
+        private final List<FlightInfo> flightInfoList = new ArrayList<>();
+
+        public FlightController() {
+            flightInfoList.add(
+                    new FlightInfo(1, "Delhi Indira Gandhi", "Stuttgart", "D80"));
+            flightInfoList.add(
+                    new FlightInfo(2, "Tokyo Haneda", "Frankfurt", "110"));
+            flightInfoList.add(
+                    new FlightInfo(3, "Berlin Schönefeld", "Tenerife", "15"));
+            flightInfoList.add(
+                    new FlightInfo(4, "Kilimanjaro Arusha", "Boston", "15"));
+        }
+
+        @GetMapping("flights/{id}")
+        public FlightInfo getFlightInfo(@PathVariable int id) {
+            for (FlightInfo flightInfo : flightInfoList) {
+                if (flightInfo.getId() == id) {
+                    if (Objects.equals(flightInfo.getFrom(), "Berlin Schönefeld")) {
+    //                  " server.error.include-message=always " to enable message in spring
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                "Berlin Schönefeld is closed for service today");
+
+                    } else {
+                        return flightInfo;
+                    }
+                }
+            }
+
+            throw new FlightNotFoundException("Flight not found for id:" + id);
+        }
+
+    }
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/189/stages/946/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Thu, 29 Sep 2022 18:04:16 UTC
 record: -1
