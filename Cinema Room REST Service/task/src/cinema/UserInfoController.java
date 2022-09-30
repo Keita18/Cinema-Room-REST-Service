@@ -1,10 +1,9 @@
 package cinema;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @RestController
@@ -26,5 +25,25 @@ public class UserInfoController {
     @PostMapping("/users")
     public String userStatus(@RequestBody List<UserInfo> userList) {
         return String.format("Added %d users", userList.size());
+    }
+
+
+
+
+    private final ConcurrentHashMap<String, String> addressList = new ConcurrentHashMap<>();
+
+    @GetMapping("/address")
+    public ConcurrentHashMap<String, String> getAddress() {
+        return addressList;
+    }
+
+    @PostMapping("/address")
+    public void postAddress(@RequestParam String name, @RequestParam String address) {
+        addressList.put(name, address);
+    }
+
+    @DeleteMapping("/address")
+    public void deleteAddress(@RequestParam String name) {
+        addressList.remove(name);
     }
 }

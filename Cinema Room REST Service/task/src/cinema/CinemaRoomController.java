@@ -1,79 +1,107 @@
 package cinema;
 
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 public class CinemaRoomController {
     private final List<CinemaSeat> list = new ArrayList<>();
-    private void cinemaSeatList() {
 
-        for (int i = 1; i < 10; i++) {
-            for (int j = 1; j < 10; j++) {
-                var price = 8;
-                if (i <= 4)
-                    price = 10;
-                list.add(new CinemaSeat(i, j, price));
-            }
-        }
-    }
     public CinemaRoomController() {
         cinemaSeatList();
     }
 
-    CinemaRoom cinemaRoom() {
-        return new CinemaRoom(9, 9, list);
+    private void cinemaSeatList() {
+        for (int i = 1; i < 10; i++) {
+            for (int j = 1; j < 10; j++) {
+                var cinema = new CinemaSeat(i, j);
+                cinema.purchased = false;
+                cinema.token = UUID.randomUUID().toString();
+                list.add(cinema);
+            }
+        }
     }
 
     @GetMapping("/seats")
     public CinemaRoom getCinemaRoom() {
-        return cinemaRoom();
+        List<CinemaSeat> currentList = list.stream()
+                .filter(it -> !it.purchased)
+                .collect(Collectors.toList());
+        return new CinemaRoom(9, 9, currentList);
     }
 
 
     @PostMapping("/purchase")
-    public ResponseEntity<Object> purchase(@RequestBody CinemaSeat cinemaSeat) {
+    public ResponseEntity<Object> purchase(@RequestBody CinemaSeat seat) {
 
-        if (cinemaSeat.getRow() > 9 || cinemaSeat.getColumn() > 9 ||
-                cinemaSeat.getRow() < 1 || cinemaSeat.getColumn() < 1) {
+        if (seat.getRow() > 9 || seat.getColumn() > 9 ||
+                seat.getRow() < 1 || seat.getColumn() < 1) {
             return new ResponseEntity<> (
                     Map.of("error", "The number of a row or a column is out of bounds!"),
                     HttpStatus.BAD_REQUEST);
-
         }
-        for (CinemaSeat _cinemaSeat1 : list) {
-           if (_cinemaSeat1.getRow() == cinemaSeat.getRow()
-                    && _cinemaSeat1.getColumn() == cinemaSeat.getColumn()) {
-                list.remove(_cinemaSeat1);
-                return new ResponseEntity<>(_cinemaSeat1, HttpStatus.OK);
+
+        for (CinemaSeat cinemaSeat : list) {
+           if (cinemaSeat.getRow() == seat.getRow()
+                    && cinemaSeat.getColumn() == seat.getColumn()) {
+               if (!cinemaSeat.purchased) {
+                   cinemaSeat.purchased = true;
+                   var ticket = Map.of("token", cinemaSeat.token, "ticket", cinemaSeat);
+                   return new ResponseEntity<>(ticket, HttpStatus.OK);
+               }
             }
         }
         return new ResponseEntity<> (
-                Map.of("error",
-                        "The ticket has been already purchased!"), HttpStatus.BAD_REQUEST);
+                Map.of("error", "The ticket has been already purchased!"),
+                HttpStatus.BAD_REQUEST);
     }
 
+    @PostMapping("/return")
+    public ResponseEntity<Object> returned(@RequestBody TreeMap<String, String> token) {
+        var _token = token.firstEntry().getValue();
+        for (CinemaSeat seat : list) {
+            if (Objects.equals(seat.token, _token)) {
+                seat.purchased = false;
+                var returnedTicket = Map.of("returned_ticket", seat);
+                seat.token = UUID.randomUUID().toString();
+                return new ResponseEntity<>(returnedTicket, HttpStatus.OK);
+            }
+        }
 
-    private final ConcurrentHashMap<String, String> addressList = new ConcurrentHashMap<>();
-
-    @GetMapping("/address")
-    public ConcurrentHashMap<String, String> getAddress() {
-        return addressList;
+        return new ResponseEntity<>(
+                Map.of("error", "Wrong token!"),
+                HttpStatus.BAD_REQUEST);
     }
 
-    @PostMapping("/address")
-    public void postAddress(@RequestParam String name, @RequestParam String address) {
-        addressList.put(name, address);
-    }
+    @PostMapping("/stats")
+    public ResponseEntity<Object> stats(@RequestParam(required = false) String password) {
+        var pass = Objects.equals(password, "super_secret");
+        if (pass) {
+            int currentIncome, numAvailSeat, purTicket;
+            currentIncome = purTicket = 0;
+            numAvailSeat = 81;
+            for (CinemaSeat seat : list) {
+                if (seat.purchased) {
+                    numAvailSeat--;
+                    purTicket++;
+                    currentIncome += seat.getPrice();
+                }
+            }
+            return new ResponseEntity<>(
+                    Map.of("current_income", currentIncome,
+                            "number_of_available_seats", numAvailSeat,
+                            "number_of_purchased_tickets", purTicket),
+                    HttpStatus.OK
+            );
+        }
 
-    @DeleteMapping("/address")
-    public void deleteAddress(@RequestParam String name) {
-        addressList.remove(name);
+        return new ResponseEntity<>(
+                Map.of("error", "The password is wrong!"),
+                HttpStatus.UNAUTHORIZED);
     }
 }

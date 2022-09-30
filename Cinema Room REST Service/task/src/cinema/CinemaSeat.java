@@ -1,20 +1,20 @@
 package cinema;
 
+import java.util.UUID;
+
 public class CinemaSeat {
     private int row;
     private int column;
     private int price;
+    boolean purchased;
+    String token;
 
     public CinemaSeat() {}
 
-    public CinemaSeat(int row, int column, int price) {
+    public CinemaSeat(int row, int column) {
         this.row = row;
         this.column = column;
-        this.price = price;
-    }
-
-    public CinemaSeat(int row, int column) {
-
+        this.price = row <= 4? 10 : 8;
     }
 
     public int getRow() {
