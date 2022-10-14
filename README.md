@@ -10,8 +10,8 @@ Let's make our virtual movie theater with the help of a REST service. Our movie 
 
 Objectives
 Implement the /seats endpoint that handles GET requests and returns the information about the movie theatre.
-
-The response should contain information about the rows, columns, and available seats. The response is a JSON object and has the following format:
+ 
+The response should contain information about the rows, columns, and available seats. The response is a JSON object and has the following format :
 
 {
    "total_rows":5,
